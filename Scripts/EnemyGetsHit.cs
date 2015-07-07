@@ -26,6 +26,13 @@ public class EnemyGetsHit : MonoBehaviour {
 
 		enemyHP -= playerDamage;
 
+		if (enemyHP <= 0)
+			Death ();
+
 		Debug.Log(gameObject.name + " was hit for " + playerDamage + "hp. " + enemyHP + "left.");
+	}
+
+	void Death() {
+		DestroyObject(gameObject);
 	}
 }
