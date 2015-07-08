@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class Player : MonoBehaviour {
@@ -7,7 +7,11 @@ public class Player : MonoBehaviour {
 	private Vector3 position;
 	private Vector3 previousPosition;
 	private Transform tr;
-	private int playerDamage = 10;
+	
+	private int playerDamageMin = 1;
+	private int playerDamageMax = 2;
+	
+	private int playerDamage;
 
 	private bool playerMoving = false;
 
@@ -83,6 +87,9 @@ public class Player : MonoBehaviour {
 			if(enemyObject.transform.position == position)
 			{
 				//Player attacks the enemy
+				
+				int playerDamage = Random.Range(playerDamageMin, playerDamageMax);
+				
 				enemyObject.SendMessage("TakeDamage", playerDamage);
 
 				//DestroyObject(enemyObject);
