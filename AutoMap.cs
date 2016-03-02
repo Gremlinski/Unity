@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class AutoMap : MonoBehaviour
 {
@@ -14,6 +14,7 @@ public class AutoMap : MonoBehaviour
     public Texture2D borderTexture;
     public Texture2D wallTileTexture;
     public Texture2D playerTileTexture;
+    public Texture2D enemyTileTexture;
     public Texture2D stairsTileTexture;
 
     public Texture2D increaseTexture;
@@ -24,15 +25,16 @@ public class AutoMap : MonoBehaviour
 
     Rect mapTile;
     Rect playerMarker;
+    Rect enemyMarker;
 
     //This is the set of the square size on the automap
     private int sizeOfSquare = 8;
 
     public static string autoMapLocation = "BottomRight";
 
-    public Rect windowRect = new Rect(20, 20, 640, 480);
+    public Rect automapWindowRect = new Rect(20, 20, 640, 480);
 
-	private int offset = 18;
+    private int offset = 18;
 
     //private bool setAutomapPos = true;
 
@@ -44,8 +46,8 @@ public class AutoMap : MonoBehaviour
 
     void ResetAutomapPos()
     {
-        windowRect.x = Screen.width - AutoMapArray.GetLength(0) * sizeOfSquare - offset;
-        windowRect.y = Screen.height - AutoMapArray.GetLength(1) * sizeOfSquare - offset;
+        automapWindowRect.x = Screen.width - AutoMapArray.GetLength(0) * sizeOfSquare - offset;
+        automapWindowRect.y = Screen.height - AutoMapArray.GetLength(1) * sizeOfSquare - offset;
 
         //Automap was reset and doesn't need to be any more
         //setAutomapPos = false;
@@ -63,12 +65,14 @@ public class AutoMap : MonoBehaviour
         //3 is seen stairs
         //
 
-        windowRect.width = AutoMapArray.GetLength(0) * sizeOfSquare + offset;
-        windowRect.height = AutoMapArray.GetLength(1) * sizeOfSquare + offset;
+        automapWindowRect.width = AutoMapArray.GetLength(0) * sizeOfSquare + offset;
+        automapWindowRect.height = AutoMapArray.GetLength(1) * sizeOfSquare + offset;
 
         //Draw a box around the automap
         GUI.skin.label.normal.background = borderTexture;
-        GUI.Label(new Rect(windowRect.width - AutoMapArray.GetLength(0) * sizeOfSquare - offset, windowRect.height - AutoMapArray.GetLength(1) * sizeOfSquare - offset, AutoMapArray.GetLength(0) * sizeOfSquare + 24, AutoMapArray.GetLength(1) * sizeOfSquare + 24), "");
+        GUI.Label(new Rect(automapWindowRect.width - AutoMapArray.GetLength(0) * sizeOfSquare - offset, automapWindowRect.height - AutoMapArray.GetLength(1) * sizeOfSquare - offset, AutoMapArray.GetLength(0) * sizeOfSquare + 24, AutoMapArray.GetLength(1) * sizeOfSquare + 24), "");
+
+        //Walls and stairs automap markers
 
         //For all spaces on the map vertically
         for (int z = 0; z < AutoMapArray.GetLength(1); z++)
@@ -80,84 +84,112 @@ public class AutoMap : MonoBehaviour
                 {
                     //Calculate the square based on the square size
                     mapTile = new Rect(x * sizeOfSquare + horizontalMapOffset, -z * sizeOfSquare + AutoMapArray.GetLength(1) * sizeOfSquare, sizeOfSquare, sizeOfSquare);
-                }
-                else if (autoMapLocation == "BottomRight")
+                } else if (autoMapLocation == "BottomRight")
                 {
                     //Calculate the square based on the square size
-                    mapTile = new Rect(windowRect.width + (x * sizeOfSquare) - AutoMapArray.GetLength(0) * sizeOfSquare - 14, -z * sizeOfSquare + windowRect.height - 14, sizeOfSquare, sizeOfSquare);
+                    mapTile = new Rect(automapWindowRect.width + (x * sizeOfSquare) - AutoMapArray.GetLength(0) * sizeOfSquare - 14, -z * sizeOfSquare + automapWindowRect.height - 14, sizeOfSquare, sizeOfSquare);
                 }
 
                 //If the automap coordinate is equal to 2
-                if (AutoMapArray[x, z] == 2)
+                if (AutoMapArray [x, z] == 2)
                 {
-                    //Wall tile texture
-                    //GUI.skin.label.normal.background = wallTileTexture;
-
                     //Draw the wall map tile
-                    //GUI.Label(mapTile, "");
                     GUI.DrawTexture(mapTile, wallTileTexture);
                 }
 
                 //If the automap coordinate is equal to 3
-                if (AutoMapArray[x, z] == 3)
+                if (AutoMapArray [x, z] == 3)
                 {
-                    //Stairs tile texture
-                    //GUI.skin.label.normal.background = stairsTileTexture;
-
                     //Draw the stairs map tile
-                    //GUI.Label(mapTile, "");
                     GUI.DrawTexture(mapTile, stairsTileTexture);
                 }
             }
         }
 
+        //Player automap marker
+
         if (autoMapLocation == "TopLeft")
         {
             //Player location map tile
             playerMarker = new Rect(Player.currentPosition.x * sizeOfSquare + horizontalMapOffset, -Player.currentPosition.z * sizeOfSquare + AutoMapArray.GetLength(1) * sizeOfSquare, sizeOfSquare, sizeOfSquare);
-        }
-        else if (autoMapLocation == "BottomRight")
+        } else if (autoMapLocation == "BottomRight")
         {
             //Calculate the square based on the square size
-            playerMarker = new Rect(windowRect.width + (Player.currentPosition.x * sizeOfSquare) - AutoMapArray.GetLength(0) * sizeOfSquare - 14, -Player.currentPosition.z * sizeOfSquare + windowRect.height - 14, sizeOfSquare, sizeOfSquare);
+            playerMarker = new Rect(automapWindowRect.width + (Player.currentPosition.x * sizeOfSquare) - AutoMapArray.GetLength(0) * sizeOfSquare - 14, -Player.currentPosition.z * sizeOfSquare + automapWindowRect.height - 14, sizeOfSquare, sizeOfSquare);
             //mapTile = new Rect(Screen.width + (x * sizeOfSquare) - AutoMapArray.GetLength(0) * sizeOfSquare, -z * sizeOfSquare + Screen.height, sizeOfSquare, sizeOfSquare);
         }
 
-        //Player map tile texture
+        //Set label texture to player map tile texture
         GUI.skin.label.normal.background = playerTileTexture;
 
         //Draw the player map tiles
         GUI.Label(playerMarker, "");
 
+        //Enemy automap marker
+
+        //For all enemies
+        foreach (GameObject enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            //If enemy is seen by the player
+            if (enemy.GetComponent<Enemy>().enemyIsSeenByPlayer)
+            {
+                //Put the enemy marker on the automap
+                if (autoMapLocation == "TopLeft")
+                {
+                    //Enemy location map tile based on the square size
+                    enemyMarker = new Rect(enemy.transform.position.x * sizeOfSquare + horizontalMapOffset, -enemy.transform.position.z * sizeOfSquare + AutoMapArray.GetLength(1) * sizeOfSquare, sizeOfSquare, sizeOfSquare);
+                } else if (autoMapLocation == "BottomRight")
+                {
+                    //Enemy location map tile based on the square size
+                    enemyMarker = new Rect(automapWindowRect.width + (enemy.transform.position.x * sizeOfSquare) - AutoMapArray.GetLength(0) * sizeOfSquare - 14, -enemy.transform.position.z * sizeOfSquare + automapWindowRect.height - 14, sizeOfSquare, sizeOfSquare);
+                }
+                
+                //Set label texture to player map tile texture
+                GUI.skin.label.normal.background = enemyTileTexture;
+                
+                //Draw the player map tiles
+                GUI.Label(enemyMarker, "");
+            }
+        }
+
         //Increase button texture and style
-        GUIStyle increaseSize = new GUIStyle();
-        increaseSize.border = new RectOffset(4, 4, 4, 4);
-        increaseSize.normal.background = increaseTexture;
-        increaseSize.normal.textColor = Color.white;
-        increaseSize.alignment = TextAnchor.MiddleCenter;
+        GUIStyle increaseSizeStyle = new GUIStyle();
+        increaseSizeStyle.border = new RectOffset(4, 4, 4, 4);
+        increaseSizeStyle.normal.background = increaseTexture;
+        increaseSizeStyle.normal.textColor = Color.white;
+        increaseSizeStyle.alignment = TextAnchor.MiddleCenter;
 
         //Decrease button texture and style
-        GUIStyle decreaseSize = new GUIStyle();
-        decreaseSize.border = new RectOffset(4, 4, 4, 4);
-        decreaseSize.normal.background = decreaseTexture;
-        decreaseSize.normal.textColor = Color.white;
-        decreaseSize.alignment = TextAnchor.MiddleCenter;
+        GUIStyle decreaseSizeStyle = new GUIStyle();
+        decreaseSizeStyle.border = new RectOffset(4, 4, 4, 4);
+        decreaseSizeStyle.normal.background = decreaseTexture;
+        decreaseSizeStyle.normal.textColor = Color.white;
+        decreaseSizeStyle.alignment = TextAnchor.MiddleCenter;
 
         //AutoMap increase and decrease buttons size
         int buttonSize = 20;
 
-		int buttonOffsetCorner = 4;
+        //Increase and decrease buttons' offset from the corner
+        int buttonOffsetCorner = 4;
 
-        if (GUI.Button(new Rect(windowRect.width - buttonSize - buttonOffsetCorner, buttonOffsetCorner, buttonSize, buttonSize), "", increaseSize))
+        //If increase size button is pressed
+        if (GUI.Button(new Rect(automapWindowRect.width - buttonSize - buttonOffsetCorner, buttonOffsetCorner, buttonSize, buttonSize), "", increaseSizeStyle))
         {
+            //Increase the size of the square
             sizeOfSquare += 1;
-            windowRect.x -= TerrainMap.mapWidth;
+
+            //Move the map window position so mouse remains in the button
+            automapWindowRect.x -= TerrainMap.mapWidth;
         }
 
-        if (GUI.Button(new Rect(windowRect.width - buttonSize * 2 - buttonOffsetCorner, buttonOffsetCorner, buttonSize, buttonSize), "", decreaseSize))
+        //If decrease size button is pressed
+        if (GUI.Button(new Rect(automapWindowRect.width - buttonSize * 2 - buttonOffsetCorner, buttonOffsetCorner, buttonSize, buttonSize), "", decreaseSizeStyle))
         {
+            //Decrease the size of the square
             sizeOfSquare -= 1;
-            windowRect.x += TerrainMap.mapWidth;
+
+            //Move the map window position so mouse remains in the button
+            automapWindowRect.x += TerrainMap.mapWidth;
         }
 
         //5000 is so no matter how far horizontally window goes, it's still draggable
@@ -172,7 +204,7 @@ public class AutoMap : MonoBehaviour
 
         if (AutoMapArray != null && showAutoMap == true)
         {
-            windowRect = GUI.Window(0, windowRect, AutomapWindow, "");
+            automapWindowRect = GUI.Window(0, automapWindowRect, AutomapWindow, "");
         }
     }
 
@@ -238,13 +270,13 @@ public class AutoMap : MonoBehaviour
                     if (wallPosition == new Vector3(x, 0, z) && tag == "Wall")
                     {
                         //Make the coordinate equal 2
-                        AutoMapArray[x, z] = 2;
+                        AutoMapArray [x, z] = 2;
                     }
                     //If the automap coordinate is stairs
                     else if (wallPosition == new Vector3(x, 0, z) && tag == "Stairs")
                     {
                         //Make the coordinate equal 3
-                        AutoMapArray[x, z] = 3;
+                        AutoMapArray [x, z] = 3;
                     }
                 }
             }
