@@ -1,1 +1,12 @@
+using UnityEngine;
 
+public class AddAudioComponent : MonoBehaviour
+{
+    // Start is called before the first frame update
+    void Start()
+    {
+        AudioListener listener = gameObject.AddComponent<AudioListener>() as AudioListener;
+
+        AudioReverbFilter reverbFilter = gameObject.AddComponent<AudioReverbFilter>() as AudioReverbFilter;
+    }
+}
